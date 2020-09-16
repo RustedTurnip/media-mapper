@@ -17,7 +17,7 @@ type config struct {
 }
 
 const (
-	version = "v0.0.0-dev"
+	version = "v0.1.0"
 )
 
 var (
