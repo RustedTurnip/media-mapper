@@ -31,9 +31,9 @@ type File struct {
 }
 
 func (f *File) GetName() string {
-	return fmt.Sprintf("%s.%s", f.Name, f.Ext)
+	return fmt.Sprintf("%s%s", f.Name, f.Ext)
 }
 
 func (f *File) GetNewName() string {
-	return fmt.Sprintf("%s.%s", f.NewName, f.Ext)
+	return fmt.Sprintf("%s%s", f.NewName, f.Ext)
 }

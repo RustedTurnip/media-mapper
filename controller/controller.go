@@ -47,6 +47,9 @@ func (w *Worker) Do() {
 	for _, err := range w.errs {
 		fmt.Println(err.Error())
 	}
+
+	fmt.Println("Renaming files...")
+	w.filer.RenameBatch()
 }
 
 func (w *Worker) getName(info *ptn.TorrentInfo) string {

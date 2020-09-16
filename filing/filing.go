@@ -2,7 +2,9 @@ package filing
 
 import (
 	"fmt"
+	"log"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 )
@@ -95,4 +97,20 @@ func (f *Filer) extractMediaFiles(files []string) []string {
 	//TODO same for supportedSubtitle files
 
 	return mediaFiles
+}
+
+func (f *Filer) RenameBatch() {
+
+	for loc, dir := range f.files {
+		for _, file := range dir {
+			old := path.Join(loc, file.GetName())
+			new := path.Join(loc, file.GetNewName())
+
+			err := os.Rename(old, new)
+
+			if err != nil {
+				log.Println(fmt.Sprintf("Failed to rename file: %s", old))
+			}
+		}
+	}
 }
