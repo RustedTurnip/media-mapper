@@ -10,14 +10,14 @@ import (
 const (
 	parseErr = "%s: failed to parse - %s"
 
-	tvTitleFmt = "%s - %dx%d - %s"
+	tvTitleFmt    = "%s - %dx%d - %s"
 	movieTitleFmt = "%s (%d)"
 )
 
 type Worker struct {
 	database dbs.Database
 	filer    *filing.Filer
-	errs	[]error
+	errs     []error
 }
 
 func New(database dbs.Database, filer *filing.Filer) *Worker {
@@ -28,7 +28,7 @@ func New(database dbs.Database, filer *filing.Filer) *Worker {
 }
 
 func (w *Worker) Do() {
-	
+
 	for _, files := range w.filer.GetFiles() {
 		for _, file := range files {
 			info, err := ptn.Parse(file.Name)
@@ -40,6 +40,12 @@ func (w *Worker) Do() {
 			file.NewName = w.getName(info)
 			fmt.Println(fmt.Sprintf("from: %s\nto: %s\n---\n", file.Name, file.NewName))
 		}
+	}
+
+	//display failed files
+	fmt.Println("Match failures:")
+	for _, err := range w.errs {
+		fmt.Println(err.Error())
 	}
 }
 

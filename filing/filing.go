@@ -49,10 +49,9 @@ func (f *Filer) findFiles() error {
 		ext := filepath.Ext(file)
 		name := strings.TrimSuffix(filepath.Base(file), ext)
 
-
 		fileMap[path] = append(fileMap[path], &File{
 			Name: name,
-			Ext: ext,
+			Ext:  ext,
 		})
 	}
 

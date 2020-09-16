@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"fmt"
+	"log"
 
 	cfg "github.com/rustedturnip/media-mapper/config"
 	"github.com/rustedturnip/media-mapper/controller"
@@ -21,14 +21,14 @@ const (
 
 var (
 	database string
-	auth	 string
+	auth     string
 	location string
 )
 
 func init() {
 	//todo use different flag package
 	flag.StringVar(&database, "database", "TMDB", "database to extract data from")
-	flag.StringVar(&auth, "authentication","/Users/samuel/go/src/github.com/rustedturnip/media-mapper/configs.json", "location of auth")
+	flag.StringVar(&auth, "authentication", "/Users/samuel/go/src/github.com/rustedturnip/media-mapper/configs.json", "location of auth")
 	flag.StringVar(&location, "location", "/Users/samuel/go/src/github.com/rustedturnip/media-mapper/tmp-test", "location of files to be formatted")
 }
 
@@ -37,22 +37,18 @@ func main() {
 	//create DB instance
 	db, ok := dbs.API_value[database]
 	if !ok {
-		//TODO better error handling
-		fmt.Println("specified network not supported")
-		return
+		log.Fatalf("Unssupported network specified: %s", database)
 	}
 
 	api, err := cfg.GetInstance(auth, db)
 	if err != nil {
-		fmt.Println("error creating database instance")
-		return
+		log.Fatalf("Unable to create network instance for %s", database)
 	}
 
 	//create Filer instance
 	var filer *filing.Filer
 	if filer, err = filing.New(location); err != nil {
-		fmt.Println(err)
-		return
+		log.Fatalf("File handler failed to initialise: %s", err.Error())
 	}
 
 	worker := controller.New(api, filer)

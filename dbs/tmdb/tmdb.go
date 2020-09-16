@@ -2,6 +2,7 @@ package tmdb
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"time"
@@ -38,7 +39,8 @@ func (db *TMDB) SearchMovies(title string) []*types.Movie {
 	results, err :=  db.searchMovies(title)
 
 	if err != nil {
-		panic(err)
+		log.Println(fmt.Sprintf("Failed getting Movie results with error: %s", err.Error()))
+		return []*types.Movie{} //empty slice
 	}
 
 	var movies []*types.Movie
@@ -74,8 +76,7 @@ func (db *TMDB) buildMovie (result movieSearchResult) *types.Movie {
 
 	date, err := time.Parse(apiDateFormat, result.ReleaseDate)
 	if err != nil {
-		//todo - logging
-		fmt.Println(err)
+		log.Println(fmt.Sprintf("Movie build error: %s", err.Error()))
 	}
 
 	movie := movieBuilder.
@@ -90,12 +91,17 @@ func (db *TMDB) SearchTV(title string) []*types.TV {
 	results, err :=  db.searchTV(title)
 
 	if err != nil {
-		panic(err)
+		log.Println(fmt.Sprintf("Failed getting TV results with error: %s", err.Error()))
+		return []*types.TV{} //empty slice
 	}
 
 	var shows []*types.TV
 	for _, show := range results.Results {
-		shows = append(shows, db.buildTV(show))
+
+		bShow := db.buildTV(show)
+		if bShow != nil {
+			shows = append(shows, db.buildTV(show))
+		}
 	}
 
 	return shows
@@ -121,16 +127,18 @@ func (db *TMDB) searchTV(title string) (*tvSearch, error) {
 }
 
 func (db *TMDB) buildTV (result tvSearchResult) *types.TV {
+	errScope := "TV Build error: %s"
 
 	tvResp, err := http.Get(fmt.Sprintf(apiTVByID, result.ID, db.apiKey))
 	if err != nil {
-		//todo - logging
-		fmt.Println(err)
+		log.Println(fmt.Sprintf(errScope, err))
+		return nil
 	}
 
 	var tvObj *tv
 	err = dbs.ReadJsonToStruct(tvResp.Body, &tvObj)
 	if err != nil {
+		log.Println(fmt.Sprintf(errScope, err))
 		return nil
 	}
 
@@ -139,13 +147,14 @@ func (db *TMDB) buildTV (result tvSearchResult) *types.TV {
 	for _, s := range tvObj.Seasons {
 		seriesResp, err := http.Get(fmt.Sprintf(apiSeriesByNumber, result.ID, s.SeasonNumber, db.apiKey))
 		if err != nil {
-			//todo - logging
-			fmt.Println(err)
+			log.Println(fmt.Sprintf(errScope, err))
+			return nil
 		}
 
 		var sObj *series
 		err = dbs.ReadJsonToStruct(seriesResp.Body, &sObj)
 		if err != nil {
+			log.Println(fmt.Sprintf(errScope, err))
 			return nil
 		}
 

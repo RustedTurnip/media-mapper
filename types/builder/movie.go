@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"log"
 	"time"
 
 	"github.com/rustedturnip/media-mapper/types"
@@ -22,8 +23,7 @@ func (mb *MovieBuilder) Build () *types.Movie {
 
 	for _, f := range mb.functions {
 		if err := f(movie); err != nil {
-			//todo
-			panic(err)
+			log.Println(err.Error())
 		}
 	}
 

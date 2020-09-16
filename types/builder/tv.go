@@ -2,6 +2,7 @@ package builder
 
 import (
 	"github.com/rustedturnip/media-mapper/types"
+	"log"
 )
 
 
@@ -45,8 +46,7 @@ func (tvb *TVBuilder) Build () *types.TV {
 
 	for _, f := range tvb.functions {
 		if err := f(tv); err != nil {
-			//todo
-			panic(err)
+			log.Println(err.Error())
 		}
 	}
 
@@ -59,8 +59,7 @@ func (sb *SeriesBuilder) Build () *types.Series {
 
 	for _, f := range sb.functions {
 		if err := f(series); err != nil {
-			//todo
-			panic(err)
+			log.Println(err.Error())
 		}
 	}
 
@@ -73,8 +72,7 @@ func (eb *EpisodeBuilder) Build () *types.Episode {
 
 	for _, f := range eb.functions {
 		if err := f(episode); err != nil {
-			//todo
-			panic(err)
+			log.Println(err.Error())
 		}
 	}
 

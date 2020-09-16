@@ -25,9 +25,9 @@ var (
 )
 
 type File struct {
-	Name   	string //file name without extension
+	Name    string //file name without extension
 	NewName string //
-	Ext    	string //file extension
+	Ext     string //file extension
 }
 
 func (f *File) GetName() string {

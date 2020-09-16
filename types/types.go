@@ -32,12 +32,12 @@ func NewTV() *TV {
 	}
 }
 
-func NewSeries() *Series{
+func NewSeries() *Series {
 	return &Series{
 		Episodes: make(map[int]*Episode),
 	}
 }
 
-func NewEpisode() *Episode{
+func NewEpisode() *Episode {
 	return &Episode{}
 }
