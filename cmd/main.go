@@ -28,7 +28,7 @@ var (
 func init() {
 	//todo use different flag package
 	flag.StringVar(&database, "database", "TMDB", "database to extract data from")
-	flag.StringVar(&auth, "authentication", "/Users/samuel/go/src/github.com/rustedturnip/media-mapper/configs.json", "location of auth")
+	flag.StringVar(&auth, "auth", "/Users/samuel/go/src/github.com/rustedturnip/media-mapper/configs.json", "location of auth")
 	flag.StringVar(&location, "location", "/Users/samuel/go/src/github.com/rustedturnip/media-mapper/tmp-test", "location of files to be formatted")
 }
 
