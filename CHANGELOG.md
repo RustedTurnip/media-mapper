@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Added changelog (using the convention defined in https://keepachangelog.com/en/1.0.0/).
 - File renaming has now been added so this tool can now be used as intended.
+- Added `-version` commandline flag.
 
 ### Changed
 - Better logging has been implemented replacing the few non-descriptive log

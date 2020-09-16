@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 
 	cfg "github.com/rustedturnip/media-mapper/config"
@@ -20,19 +21,26 @@ const (
 )
 
 var (
-	database string
-	auth     string
-	location string
+	versionFlag bool
+	database    string
+	auth        string
+	location    string
 )
 
 func init() {
-	//todo use different flag package
+	flag.BoolVar(&versionFlag, "version", false, "database to extract data from")
+
 	flag.StringVar(&database, "database", "TMDB", "database to extract data from")
 	flag.StringVar(&auth, "auth", "/Users/samuel/go/src/github.com/rustedturnip/media-mapper/configs.json", "location of auth")
 	flag.StringVar(&location, "location", "/Users/samuel/go/src/github.com/rustedturnip/media-mapper/tmp-test", "location of files to be formatted")
 }
 
 func main() {
+
+	if versionFlag {
+		fmt.Print(fmt.Sprintf("media-mapper version: %s", version))
+		return
+	}
 
 	//create DB instance
 	db, ok := dbs.API_value[database]
