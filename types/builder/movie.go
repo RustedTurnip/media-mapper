@@ -17,7 +17,7 @@ func NewMovieBuilder() *MovieBuilder {
 	}
 }
 
-func (mb *MovieBuilder) Build () *types.Movie {
+func (mb *MovieBuilder) Build() *types.Movie {
 
 	movie := &types.Movie{}
 

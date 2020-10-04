@@ -17,8 +17,8 @@ const (
 	apiMovieSearch = "https://api.themoviedb.org/3/search/movie?api_key=%s&language=en-GB&query=%s&page=1&include_adult=true"
 
 	//tv calls
-	apiTVSearch = "https://api.themoviedb.org/3/search/tv?api_key=%s&language=en-GB&query=%s&page=1&include_adult=true"
-	apiTVByID = "https://api.themoviedb.org/3/tv/%d?api_key=%s&language=en-GB"
+	apiTVSearch       = "https://api.themoviedb.org/3/search/tv?api_key=%s&language=en-GB&query=%s&page=1&include_adult=true"
+	apiTVByID         = "https://api.themoviedb.org/3/tv/%d?api_key=%s&language=en-GB"
 	apiSeriesByNumber = "https://api.themoviedb.org/3/tv/%d/season/%d?api_key=%s&language=en-GB"
 
 	apiDateFormat = "2006-01-02"
@@ -36,7 +36,7 @@ func New(key string) dbs.Database {
 
 func (db *TMDB) SearchMovies(title string) []*types.Movie {
 
-	results, err :=  db.searchMovies(title)
+	results, err := db.searchMovies(title)
 
 	if err != nil {
 		log.Println(fmt.Sprintf("Failed getting Movie results with error: %s", err.Error()))
@@ -70,7 +70,7 @@ func (db *TMDB) searchMovies(title string) (*movieSearch, error) {
 	return searchResults, nil
 }
 
-func (db *TMDB) buildMovie (result movieSearchResult) *types.Movie {
+func (db *TMDB) buildMovie(result movieSearchResult) *types.Movie {
 
 	movieBuilder := builder.NewMovieBuilder()
 
@@ -88,7 +88,7 @@ func (db *TMDB) buildMovie (result movieSearchResult) *types.Movie {
 }
 
 func (db *TMDB) SearchTV(title string) []*types.TV {
-	results, err :=  db.searchTV(title)
+	results, err := db.searchTV(title)
 
 	if err != nil {
 		log.Println(fmt.Sprintf("Failed getting TV results with error: %s", err.Error()))
@@ -126,7 +126,7 @@ func (db *TMDB) searchTV(title string) (*tvSearch, error) {
 	return searchResults, nil
 }
 
-func (db *TMDB) buildTV (result tvSearchResult) *types.TV {
+func (db *TMDB) buildTV(result tvSearchResult) *types.TV {
 	errScope := "TV Build error: %s"
 
 	tvResp, err := http.Get(fmt.Sprintf(apiTVByID, result.ID, db.apiKey))

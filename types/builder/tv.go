@@ -5,7 +5,6 @@ import (
 	"log"
 )
 
-
 //Builder definitions
 type TVBuilder struct {
 	functions []func(tv *types.TV) error
@@ -20,27 +19,26 @@ type EpisodeBuilder struct {
 }
 
 //Constructors
-func NewTVBuilder() *TVBuilder{
+func NewTVBuilder() *TVBuilder {
 	return &TVBuilder{
 		functions: make([]func(tv *types.TV) error, 0),
 	}
 }
 
-func NewSeriesBuilder() *SeriesBuilder{
+func NewSeriesBuilder() *SeriesBuilder {
 	return &SeriesBuilder{
 		functions: make([]func(tv *types.Series) error, 0),
 	}
 }
 
-func NewEpisodeBuilder() *EpisodeBuilder{
+func NewEpisodeBuilder() *EpisodeBuilder {
 	return &EpisodeBuilder{
 		functions: make([]func(tv *types.Episode) error, 0),
 	}
 }
 
-
 //Build functions
-func (tvb *TVBuilder) Build () *types.TV {
+func (tvb *TVBuilder) Build() *types.TV {
 
 	tv := types.NewTV()
 
@@ -53,7 +51,7 @@ func (tvb *TVBuilder) Build () *types.TV {
 	return tv
 }
 
-func (sb *SeriesBuilder) Build () *types.Series {
+func (sb *SeriesBuilder) Build() *types.Series {
 
 	series := types.NewSeries()
 
@@ -66,7 +64,7 @@ func (sb *SeriesBuilder) Build () *types.Series {
 	return series
 }
 
-func (eb *EpisodeBuilder) Build () *types.Episode {
+func (eb *EpisodeBuilder) Build() *types.Episode {
 
 	episode := types.NewEpisode()
 
@@ -78,7 +76,6 @@ func (eb *EpisodeBuilder) Build () *types.Episode {
 
 	return episode
 }
-
 
 //TV Builder functions
 func (tvb *TVBuilder) WithTitle(title string) *TVBuilder {
@@ -110,7 +107,6 @@ func (tvb *TVBuilder) WithSeries(seriesBuilder *SeriesBuilder) *TVBuilder {
 	return tvb
 }
 
-
 //Series Builder functions
 func (sb *SeriesBuilder) WithTitle(title string) *SeriesBuilder {
 	sb.functions = append(sb.functions, func(s *types.Series) error {
@@ -141,10 +137,9 @@ func (sb *SeriesBuilder) WithEpisode(episodeBuilder *EpisodeBuilder) *SeriesBuil
 	return sb
 }
 
-
 //Episode Builder functions
 func (eb *EpisodeBuilder) WithTitle(title string) *EpisodeBuilder {
-	eb.functions = append(eb.functions, func(e *types.Episode) error{
+	eb.functions = append(eb.functions, func(e *types.Episode) error {
 		e.Title = title
 		return nil
 	})
@@ -153,7 +148,7 @@ func (eb *EpisodeBuilder) WithTitle(title string) *EpisodeBuilder {
 }
 
 func (eb *EpisodeBuilder) WithNumber(number int) *EpisodeBuilder {
-	eb.functions = append(eb.functions, func(e *types.Episode) error{
+	eb.functions = append(eb.functions, func(e *types.Episode) error {
 		e.Number = number
 		return nil
 	})

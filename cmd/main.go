@@ -11,13 +11,8 @@ import (
 	"github.com/rustedturnip/media-mapper/filing"
 )
 
-type config struct {
-	DB  string   `json:"database"`
-	cfg []string `json:"config"`
-}
-
 const (
-	version = "v0.1.0"
+	version = "v0.1.0-dev"
 )
 
 var (
