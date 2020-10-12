@@ -34,6 +34,8 @@ func init() {
 	flag.StringVar(&database, "database", "TMDB", "database to extract data from")
 	flag.StringVar(&auth, "auth", "", "location of auth")
 	flag.StringVar(&location, "location", "", "location of files to be formatted")
+
+	flag.Parse()
 }
 
 func main() {
