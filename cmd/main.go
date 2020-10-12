@@ -32,8 +32,8 @@ func init() {
 	flag.BoolVar(&versionFlag, "version", false, "database to extract data from")
 
 	flag.StringVar(&database, "database", "TMDB", "database to extract data from")
-	flag.StringVar(&auth, "auth", "/Users/samuel/go/src/github.com/rustedturnip/media-mapper/configs.json", "location of auth")
-	flag.StringVar(&location, "location", "/Users/samuel/go/src/github.com/rustedturnip/media-mapper/tmp-test", "location of files to be formatted")
+	flag.StringVar(&auth, "auth", "", "location of auth")
+	flag.StringVar(&location, "location", "", "location of files to be formatted")
 }
 
 func main() {
