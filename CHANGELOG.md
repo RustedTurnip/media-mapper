@@ -3,6 +3,18 @@ All notable changes to this project will be documented in this file.
 
 *Note: Additional information on this changelog can be found in the [footnote](#a-namefootnotefootnotea).*
 
+## v0.2.0 - 2020-10-14
+### Added
+- Added a break in operation in between identifying name changes and applying
+the name changes where user input is required. This offers users a chance to
+prevent unwanted changes.
+- Populated the [README](https://github.com/RustedTurnip/media-mapper/blob/master/README.md).
+
+### Fixed
+- Added check for empty `location` argument to prevent unwanted behaviour.
+
+
+
 ## v0.1.0 - 2020-09-16
 ### Added
 - Added changelog (using the convention defined in https://keepachangelog.com/en/1.0.0/).
