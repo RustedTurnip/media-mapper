@@ -29,7 +29,7 @@ var (
 )
 
 func init() {
-	flag.BoolVar(&versionFlag, "version", false, "database to extract data from")
+	flag.BoolVar(&versionFlag, "version", false, "media-mapper version")
 
 	flag.StringVar(&database, "database", "TMDB", "database to extract data from")
 	flag.StringVar(&auth, "auth", "", "location of auth")
