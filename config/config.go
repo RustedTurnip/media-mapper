@@ -2,10 +2,9 @@ package config
 
 import (
 	"encoding/json"
-	"os"
-
 	"github.com/rustedturnip/media-mapper/dbs"
 	"github.com/rustedturnip/media-mapper/dbs/tmdb"
+	"io"
 )
 
 type database struct {
@@ -17,9 +16,9 @@ type config struct {
 	Databases []*database `json:"databases"`
 }
 
-func GetInstance(authLocation string, api dbs.API) (dbs.Database, error) {
+func GetInstance(authReader io.Reader, api dbs.API) (dbs.Database, error) {
 
-	configs, err := getConfigs(authLocation)
+	configs, err := getConfigs(authReader)
 	if err != nil {
 		return nil, err
 	}
@@ -39,17 +38,11 @@ func GetInstance(authLocation string, api dbs.API) (dbs.Database, error) {
 	}
 }
 
-func getConfigs(location string) (map[string]*database, error) {
-	//read in json auth
-	data, err := os.Open(location)
-	if err != nil {
-		return nil, err
-	}
-
+func getConfigs(reader io.Reader) (map[string]*database, error) {
 	//parse json
 	var config *config
-	decoder := json.NewDecoder(data)
-	err = decoder.Decode(&config)
+	decoder := json.NewDecoder(reader)
+	err := decoder.Decode(&config)
 
 	if err != nil {
 		return nil, err

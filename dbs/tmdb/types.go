@@ -25,24 +25,24 @@ type movieSearchResult struct {
 }
 
 type tvSearch struct {
-	Page    int              `json:"page"`
-	TotalResults int         `json:"total_results"`
-	TotalPages   int         `json:"total_pages"`
-	Results []tvSearchResult `json:"results"`
+	Page         int              `json:"page"`
+	TotalResults int              `json:"total_results"`
+	TotalPages   int              `json:"total_pages"`
+	Results      []tvSearchResult `json:"results"`
 }
 
 type tvSearchResult struct {
-	ID               int      `json:"id"`
-	Name             string   `json:"name"`
-	OriginalName     string   `json:"original_name"`
+	ID           int    `json:"id"`
+	Name         string `json:"name"`
+	OriginalName string `json:"original_name"`
 }
 
 type tv struct {
-	ID               int      `json:"id"`
-	Name             string      `json:"name"`
-	NumberOfEpisodes    int      `json:"number_of_episodes"`
-	NumberOfSeasons     int      `json:"number_of_seasons"`
-	Seasons []tvSeries `json:"seasons"`
+	ID               int        `json:"id"`
+	Name             string     `json:"name"`
+	NumberOfEpisodes int        `json:"number_of_episodes"`
+	NumberOfSeasons  int        `json:"number_of_seasons"`
+	Seasons          []tvSeries `json:"seasons"`
 }
 
 type tvSeries struct {
@@ -56,21 +56,21 @@ type tvSeries struct {
 }
 
 type series struct {
-	AirDate  string `json:"air_date"`
-	Episodes []seriesEpisode `json:"episodes"`
-	Name         string `json:"name"`
-	Overview     string `json:"overview"`
-	ID           int    `json:"id"`
-	PosterPath   string `json:"poster_path"`
-	SeasonNumber int    `json:"season_number"`
+	AirDate      string          `json:"air_date"`
+	Episodes     []seriesEpisode `json:"episodes"`
+	Name         string          `json:"name"`
+	Overview     string          `json:"overview"`
+	ID           int             `json:"id"`
+	PosterPath   string          `json:"poster_path"`
+	SeasonNumber int             `json:"season_number"`
 }
 
 type seriesEpisode struct {
-	AirDate        string  `json:"air_date"`
-	EpisodeNumber  int     `json:"episode_number"`
-	ID             int     `json:"id"`
-	Name           string  `json:"name"`
-	Overview       string  `json:"overview"`
-	ProductionCode string  `json:"production_code"`
-	SeasonNumber   int     `json:"season_number"`
+	AirDate        string `json:"air_date"`
+	EpisodeNumber  int    `json:"episode_number"`
+	ID             int    `json:"id"`
+	Name           string `json:"name"`
+	Overview       string `json:"overview"`
+	ProductionCode string `json:"production_code"`
+	SeasonNumber   int    `json:"season_number"`
 }

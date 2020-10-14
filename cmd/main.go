@@ -1,9 +1,13 @@
 package main
 
 import (
+	"encoding/base64"
 	"flag"
 	"fmt"
+	"io"
 	"log"
+	"os"
+	"strings"
 
 	cfg "github.com/rustedturnip/media-mapper/config"
 	"github.com/rustedturnip/media-mapper/controller"
@@ -11,16 +15,13 @@ import (
 	"github.com/rustedturnip/media-mapper/filing"
 )
 
-type config struct {
-	DB  string   `json:"database"`
-	cfg []string `json:"config"`
-}
-
 const (
-	version = "v0.1.0"
+	version = "v0.2.0"
 )
 
 var (
+	AuthConfigs string //base 64 encoded, initialised at build time
+
 	versionFlag bool
 	database    string
 	auth        string
@@ -28,11 +29,13 @@ var (
 )
 
 func init() {
-	flag.BoolVar(&versionFlag, "version", false, "database to extract data from")
+	flag.BoolVar(&versionFlag, "version", false, "media-mapper version")
 
 	flag.StringVar(&database, "database", "TMDB", "database to extract data from")
-	flag.StringVar(&auth, "auth", "/Users/samuel/go/src/github.com/rustedturnip/media-mapper/configs.json", "location of auth")
-	flag.StringVar(&location, "location", "/Users/samuel/go/src/github.com/rustedturnip/media-mapper/tmp-test", "location of files to be formatted")
+	flag.StringVar(&auth, "auth", "", "location of auth")
+	flag.StringVar(&location, "location", "", "location of files to be formatted")
+
+	flag.Parse()
 }
 
 func main() {
@@ -48,7 +51,12 @@ func main() {
 		log.Fatalf("Unssupported network specified: %s", database)
 	}
 
-	api, err := cfg.GetInstance(auth, db)
+	authReader, err := getAuthReader()
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+
+	api, err := cfg.GetInstance(authReader, db)
 	if err != nil {
 		log.Fatalf("Unable to create network instance for %s", database)
 	}
@@ -61,4 +69,18 @@ func main() {
 
 	worker := controller.New(api, filer)
 	worker.Do()
+}
+
+func getAuthReader() (io.Reader, error) {
+
+	//expects base64 to be encoded
+	if AuthConfigs != "" {
+		return base64.NewDecoder(base64.StdEncoding, strings.NewReader(AuthConfigs)), nil
+	}
+
+	if auth != "" {
+		return os.Open(auth)
+	}
+
+	return nil, fmt.Errorf("failed to find database credentials")
 }

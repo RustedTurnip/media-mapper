@@ -15,6 +15,11 @@ type Filer struct {
 }
 
 func New(root string) (*Filer, error) {
+
+	if root == "" {
+		return nil, fmt.Errorf("no directory specified to work on")
+	}
+
 	filer := &Filer{
 		root: root,
 	}

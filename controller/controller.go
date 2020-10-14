@@ -1,7 +1,11 @@
 package controller
 
 import (
+	"bufio"
 	"fmt"
+	"os"
+	"strings"
+
 	ptn "github.com/middelink/go-parse-torrent-name"
 	"github.com/rustedturnip/media-mapper/dbs"
 	"github.com/rustedturnip/media-mapper/filing"
@@ -48,6 +52,17 @@ func (w *Worker) Do() {
 		fmt.Println(err.Error())
 	}
 
+	//user input, proceed?
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print("Proceed with changes? (y/n): ")
+	text, _ := reader.ReadString('\n')
+
+	if strings.ToLower(strings.Trim(text, "\n")) != "y" {
+		fmt.Println("Cancelling...")
+		return
+	}
+
+	//continue with file rename
 	fmt.Println("Renaming files...")
 	w.filer.RenameBatch()
 }
