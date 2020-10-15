@@ -2,9 +2,12 @@ package config
 
 import (
 	"encoding/json"
+	"io"
+	"log"
+
 	"github.com/rustedturnip/media-mapper/dbs"
 	"github.com/rustedturnip/media-mapper/dbs/tmdb"
-	"io"
+	"github.com/rustedturnip/media-mapper/dbs/tvdb"
 )
 
 type database struct {
@@ -31,8 +34,11 @@ func GetInstance(authReader io.Reader, api dbs.API) (dbs.Database, error) {
 		return nil, err
 
 	case dbs.TVDB:
-		//TODO
-		return nil, nil
+		if db, ok := configs[dbs.API_name[int(api)]]; ok {
+			log.Println("Warning: TVDB only supports TV lookup currently")
+			return tvdb.New(db.Auth["apikey"], db.Auth["username"], db.Auth["userkey"]), nil
+		}
+		return nil, err
 	default:
 		return nil, nil
 	}
