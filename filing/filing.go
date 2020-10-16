@@ -16,8 +16,13 @@ type Filer struct {
 
 func New(root string) (*Filer, error) {
 
+	//try and use working directory if none specified ($ pwd)
 	if root == "" {
-		return nil, fmt.Errorf("no directory specified to work on")
+		if wd, err := os.Getwd(); err != nil {
+			return nil, fmt.Errorf("unable to establish a working directory")
+		} else {
+			root = wd
+		}
 	}
 
 	filer := &Filer{
