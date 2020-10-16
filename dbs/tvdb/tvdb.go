@@ -30,7 +30,7 @@ type TVDB struct {
 	httpCli         http.Client
 }
 
-func New(apiKey, username, userkey string) dbs.Database {
+func New(apiKey, username, userkey string) (dbs.Database, error) {
 
 	tvdb := &TVDB{
 		auth: auth{
@@ -47,25 +47,25 @@ func New(apiKey, username, userkey string) dbs.Database {
 
 	body, err := json.Marshal(tvdb.auth)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
 	//get JWT (token)
 	resp, err := http.Post(fmt.Sprintf("%s%s", apiBase, apiLogin), "application/json", bytes.NewReader(body))
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
 	var token *token
 	err = dbs.ReadJsonToStruct(resp.Body, &token)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
 	tvdb.token = token.Token
 	tvdb.requestTemplate.Header.Add(httpHeaderAuth, fmt.Sprintf("Bearer %s", tvdb.token))
 
-	return tvdb
+	return tvdb, nil
 }
 
 //v3 of the TVDB API doesn't support movie search

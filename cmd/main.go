@@ -58,7 +58,7 @@ func main() {
 
 	api, err := cfg.GetInstance(authReader, db)
 	if err != nil {
-		log.Fatalf("Unable to create network instance for %s", database)
+		log.Fatalf("Unable to create network instance for %s with error - %s", database, err.Error())
 	}
 
 	//create Filer instance
