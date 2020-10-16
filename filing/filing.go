@@ -7,6 +7,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	colour "github.com/fatih/color"
 )
@@ -115,6 +116,11 @@ func (f *Filer) RenameBatch() {
 
 	for loc, dir := range f.files {
 		for _, file := range dir {
+
+			if file.NewName == "" {
+				continue
+			}
+
 			old := path.Join(loc, file.GetName())
 			new := path.Join(loc, file.GetNewName())
 
@@ -131,10 +137,19 @@ func (f *Filer) PrintBatchDiff() {
 
 	//print location of diffs
 	for loc, dir := range f.files {
-		fmt.Println(fmt.Sprintf("\ndiff %s:", loc))
+		var once sync.Once //only want to print loc once per directory
 
 		//print diff
 		for _, file := range dir {
+			if file.NewName == "" {
+				continue
+			}
+
+			//only want to print loc once per directory
+			once.Do(func() {
+				fmt.Println(fmt.Sprintf("\ndiff %s:", loc))
+			})
+
 			colour.Red("- %s", file.GetName())
 			colour.Green("+ %s", file.GetNewName())
 			fmt.Println()
