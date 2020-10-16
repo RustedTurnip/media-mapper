@@ -7,6 +7,8 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+
+	colour "github.com/fatih/color"
 )
 
 type Filer struct {
@@ -121,6 +123,21 @@ func (f *Filer) RenameBatch() {
 			if err != nil {
 				log.Println(fmt.Sprintf("Failed to rename file: %s", old))
 			}
+		}
+	}
+}
+
+func (f *Filer) PrintBatchDiff() {
+
+	//print location of diffs
+	for loc, dir := range f.files {
+		fmt.Println(fmt.Sprintf("\ndiff %s:", loc))
+
+		//print diff
+		for _, file := range dir {
+			colour.Red("- %s", file.GetName())
+			colour.Green("+ %s", file.GetNewName())
+			fmt.Println()
 		}
 	}
 }

@@ -43,14 +43,18 @@ func (w *Worker) Do() {
 			}
 
 			file.NewName = w.getName(info)
-			printFileDiff(file)
 		}
 	}
 
+	//print diff
+	w.filer.PrintBatchDiff()
+
 	//display failed files
-	fmt.Println("\n\nMatch failures:")
-	for _, err := range w.errs {
-		colour.Yellow("! %s", err.Error())
+	if len(w.errs) > 1 {
+		fmt.Println("\nMatch errors:")
+		for _, err := range w.errs {
+			colour.Yellow("! %s", err.Error())
+		}
 	}
 
 	//user input, proceed?
@@ -100,11 +104,4 @@ func (w *Worker) getName(info *ptn.TorrentInfo) string {
 
 		return fmt.Sprintf(tvTitleFmt, show.Title, series.Number, episode.Number, episode.Title)
 	}
-}
-
-func printFileDiff(f *filing.File) {
-
-	fmt.Println()
-	colour.Red("- %s", f.GetName())
-	colour.Green("+ %s", f.GetNewName())
 }
