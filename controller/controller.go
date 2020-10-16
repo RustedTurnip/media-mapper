@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	colour "github.com/fatih/color"
 	ptn "github.com/middelink/go-parse-torrent-name"
 	"github.com/rustedturnip/media-mapper/dbs"
 	"github.com/rustedturnip/media-mapper/filing"
@@ -42,14 +43,14 @@ func (w *Worker) Do() {
 			}
 
 			file.NewName = w.getName(info)
-			fmt.Println(fmt.Sprintf("from: %s\nto: %s\n---\n", file.Name, file.NewName))
+			printFileDiff(file)
 		}
 	}
 
 	//display failed files
-	fmt.Println("Match failures:")
+	fmt.Println("\n\nMatch failures:")
 	for _, err := range w.errs {
-		fmt.Println(err.Error())
+		colour.Yellow("! %s", err.Error())
 	}
 
 	//user input, proceed?
@@ -99,4 +100,11 @@ func (w *Worker) getName(info *ptn.TorrentInfo) string {
 
 		return fmt.Sprintf(tvTitleFmt, show.Title, series.Number, episode.Number, episode.Title)
 	}
+}
+
+func printFileDiff(f *filing.File) {
+
+	fmt.Println()
+	colour.Red("- %s", f.GetName())
+	colour.Green("+ %s", f.GetNewName())
 }
