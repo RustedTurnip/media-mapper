@@ -3,6 +3,23 @@ All notable changes to this project will be documented in this file.
 
 *Note: Additional information on this changelog can be found in the [footnote](#a-namefootnotefootnotea).*
 
+## v0.3.0 - 2020-10-16
+### Added
+- TVDB support has now been added. Due to API limitations, this currently
+only operates on TV series and movies will be ignored. To make use of this,
+at runtime specify the database like so at runtime:
+`mediamapper -database=TVDB`. The default is TMDB.
+
+### Changed
+- The name diff outputted to show users what will be changed has been
+updated and now uses colour to clearly show what will change. The full
+path has also been added to eliminate any ambiguity.
+- When no location is provided to the program via command line arguments,
+the program uses the current working directory (when run from the
+terminal) instead of erroring.
+
+
+
 ## v0.2.0 - 2020-10-14
 ### Added
 - Added a break in operation in between identifying name changes and applying
