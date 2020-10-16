@@ -100,7 +100,7 @@ func (db *TMDB) SearchTV(title string) []*types.TV {
 
 		bShow := db.buildTV(show)
 		if bShow != nil {
-			shows = append(shows, db.buildTV(show))
+			shows = append(shows, bShow)
 		}
 	}
 

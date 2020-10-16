@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	colour "github.com/fatih/color"
 	ptn "github.com/middelink/go-parse-torrent-name"
 	"github.com/rustedturnip/media-mapper/dbs"
 	"github.com/rustedturnip/media-mapper/filing"
@@ -42,14 +43,18 @@ func (w *Worker) Do() {
 			}
 
 			file.NewName = w.getName(info)
-			fmt.Println(fmt.Sprintf("from: %s\nto: %s\n---\n", file.Name, file.NewName))
 		}
 	}
 
+	//print diff
+	w.filer.PrintBatchDiff()
+
 	//display failed files
-	fmt.Println("Match failures:")
-	for _, err := range w.errs {
-		fmt.Println(err.Error())
+	if len(w.errs) > 1 {
+		fmt.Println("\nMatch errors:")
+		for _, err := range w.errs {
+			colour.Yellow("! %s", err.Error())
+		}
 	}
 
 	//user input, proceed?

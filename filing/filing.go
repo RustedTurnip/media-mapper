@@ -7,6 +7,9 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"sync"
+
+	colour "github.com/fatih/color"
 )
 
 type Filer struct {
@@ -16,8 +19,13 @@ type Filer struct {
 
 func New(root string) (*Filer, error) {
 
+	//try and use working directory if none specified ($ pwd)
 	if root == "" {
-		return nil, fmt.Errorf("no directory specified to work on")
+		if wd, err := os.Getwd(); err != nil {
+			return nil, fmt.Errorf("unable to establish a working directory")
+		} else {
+			root = wd
+		}
 	}
 
 	filer := &Filer{
@@ -108,6 +116,11 @@ func (f *Filer) RenameBatch() {
 
 	for loc, dir := range f.files {
 		for _, file := range dir {
+
+			if file.NewName == "" {
+				continue
+			}
+
 			old := path.Join(loc, file.GetName())
 			new := path.Join(loc, file.GetNewName())
 
@@ -116,6 +129,30 @@ func (f *Filer) RenameBatch() {
 			if err != nil {
 				log.Println(fmt.Sprintf("Failed to rename file: %s", old))
 			}
+		}
+	}
+}
+
+func (f *Filer) PrintBatchDiff() {
+
+	//print location of diffs
+	for loc, dir := range f.files {
+		var once sync.Once //only want to print loc once per directory
+
+		//print diff
+		for _, file := range dir {
+			if file.NewName == "" {
+				continue
+			}
+
+			//only want to print loc once per directory
+			once.Do(func() {
+				fmt.Println(fmt.Sprintf("\ndiff %s:", loc))
+			})
+
+			colour.Red("- %s", file.GetName())
+			colour.Green("+ %s", file.GetNewName())
+			fmt.Println()
 		}
 	}
 }
