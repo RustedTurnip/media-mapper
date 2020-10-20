@@ -98,7 +98,8 @@ func (db *TMDB) SearchTV(title string) []*types.TV {
 	var shows []*types.TV
 	for _, show := range results.Results {
 
-		bShow := db.buildTV(show)
+		showData := db.fetchTVShow(&show)
+		bShow := buildTV(showData)
 		if bShow != nil {
 			shows = append(shows, bShow)
 		}
@@ -126,7 +127,8 @@ func (db *TMDB) searchTV(title string) (*tvSearch, error) {
 	return searchResults, nil
 }
 
-func (db *TMDB) buildTV(result tvSearchResult) *types.TV {
+//fetches all show specific data and returns as tvShow
+func (db *TMDB) fetchTVShow(result *tvSearchResult) *tvShow {
 	errScope := "TV Build error: %s"
 
 	tvResp, err := http.Get(fmt.Sprintf(apiTVByID, result.ID, db.apiKey))
@@ -135,15 +137,13 @@ func (db *TMDB) buildTV(result tvSearchResult) *types.TV {
 		return nil
 	}
 
-	var tvObj *tv
+	var tvObj *tvShow
 	err = dbs.ReadJsonToStruct(tvResp.Body, &tvObj)
 	if err != nil {
 		log.Println(fmt.Sprintf(errScope, err))
 		return nil
 	}
 
-	//Build TV Series
-	tvBuilder := builder.NewTVBuilder()
 	for _, s := range tvObj.Seasons {
 		seriesResp, err := http.Get(fmt.Sprintf(apiSeriesByNumber, result.ID, s.SeasonNumber, db.apiKey))
 		if err != nil {
@@ -151,16 +151,28 @@ func (db *TMDB) buildTV(result tvSearchResult) *types.TV {
 			return nil
 		}
 
-		var sObj *series
+		var sObj *tvShowSeriesData
 		err = dbs.ReadJsonToStruct(seriesResp.Body, &sObj)
 		if err != nil {
 			log.Println(fmt.Sprintf(errScope, err))
 			return nil
 		}
 
+		s.SeasonData = sObj
+	}
+
+	return tvObj
+}
+
+//builds tvShow into types.TV
+func buildTV(show *tvShow) *types.TV {
+	//Build TV Series
+	tvBuilder := builder.NewTVBuilder()
+
+	for _, sInfo := range show.Seasons {
 		//Build Series
 		seriesBuilder := builder.NewSeriesBuilder()
-		for _, e := range sObj.Episodes {
+		for _, e := range sInfo.SeasonData.Episodes {
 
 			//Build Episode
 			episodeBuilder := builder.NewEpisodeBuilder()
@@ -172,15 +184,15 @@ func (db *TMDB) buildTV(result tvSearchResult) *types.TV {
 		}
 
 		seriesBuilder.
-			WithTitle(sObj.Name).
-			WithNumber(sObj.SeasonNumber)
+			WithTitle(sInfo.Name).
+			WithNumber(sInfo.SeasonNumber)
 
 		tvBuilder.WithSeries(seriesBuilder)
 	}
 
 	tvBuilder.
-		WithTitle(tvObj.Name).
-		WithSeriesCount(tvObj.NumberOfSeasons)
+		WithTitle(show.Name).
+		WithSeriesCount(show.NumberOfSeasons)
 
 	return tvBuilder.Build()
 }
