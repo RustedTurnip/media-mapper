@@ -37,15 +37,16 @@ type tvSearchResult struct {
 	OriginalName string `json:"original_name"`
 }
 
-type tv struct {
-	ID               int        `json:"id"`
-	Name             string     `json:"name"`
-	NumberOfEpisodes int        `json:"number_of_episodes"`
-	NumberOfSeasons  int        `json:"number_of_seasons"`
-	Seasons          []tvSeries `json:"seasons"`
+type tvShow struct {
+	ID               int                 `json:"id"`
+	Name             string              `json:"name"`
+	NumberOfEpisodes int                 `json:"number_of_episodes"`
+	NumberOfSeasons  int                 `json:"number_of_seasons"`
+	Seasons          []*tvShowSeriesInfo `json:"seasons"`
 }
 
-type tvSeries struct {
+//info about the series as a whole
+type tvShowSeriesInfo struct {
 	AirDate      string `json:"air_date"`
 	EpisodeCount int    `json:"episode_count"`
 	ID           int    `json:"id"`
@@ -53,19 +54,21 @@ type tvSeries struct {
 	Overview     string `json:"overview"`
 	PosterPath   string `json:"poster_path"`
 	SeasonNumber int    `json:"season_number"`
+	SeasonData   *tvShowSeriesData
 }
 
-type series struct {
-	AirDate      string          `json:"air_date"`
-	Episodes     []seriesEpisode `json:"episodes"`
-	Name         string          `json:"name"`
-	Overview     string          `json:"overview"`
-	ID           int             `json:"id"`
-	PosterPath   string          `json:"poster_path"`
-	SeasonNumber int             `json:"season_number"`
+//data of series, i.e. episodes etc.
+type tvShowSeriesData struct {
+	AirDate      string                 `json:"air_date"`
+	Episodes     []*tvShowSeriesEpisode `json:"episodes"`
+	Name         string                 `json:"name"`
+	Overview     string                 `json:"overview"`
+	ID           int                    `json:"id"`
+	PosterPath   string                 `json:"poster_path"`
+	SeasonNumber int                    `json:"season_number"`
 }
 
-type seriesEpisode struct {
+type tvShowSeriesEpisode struct {
 	AirDate        string `json:"air_date"`
 	EpisodeNumber  int    `json:"episode_number"`
 	ID             int    `json:"id"`

@@ -25,12 +25,14 @@ const (
 )
 
 type TMDB struct {
-	apiKey string
+	apiKey     string
+	httpClient *http.Client
 }
 
 func New(key string) dbs.Database {
 	return &TMDB{
-		apiKey: key,
+		apiKey:     key,
+		httpClient: &http.Client{},
 	}
 }
 
@@ -45,7 +47,7 @@ func (db *TMDB) SearchMovies(title string) []*types.Movie {
 
 	var movies []*types.Movie
 	for _, movie := range results.Results {
-		movies = append(movies, db.buildMovie(movie))
+		movies = append(movies, buildMovie(movie))
 	}
 
 	return movies
@@ -55,7 +57,7 @@ func (db *TMDB) searchMovies(title string) (*movieSearch, error) {
 
 	searchQuery := url.QueryEscape(title)
 
-	resp, err := http.Get(fmt.Sprintf(apiMovieSearch, db.apiKey, searchQuery))
+	resp, err := db.httpClient.Get(fmt.Sprintf(apiMovieSearch, db.apiKey, searchQuery))
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +72,7 @@ func (db *TMDB) searchMovies(title string) (*movieSearch, error) {
 	return searchResults, nil
 }
 
-func (db *TMDB) buildMovie(result movieSearchResult) *types.Movie {
+func buildMovie(result movieSearchResult) *types.Movie {
 
 	movieBuilder := builder.NewMovieBuilder()
 
@@ -98,7 +100,8 @@ func (db *TMDB) SearchTV(title string) []*types.TV {
 	var shows []*types.TV
 	for _, show := range results.Results {
 
-		bShow := db.buildTV(show)
+		showData := db.fetchTVShow(&show)
+		bShow := buildTV(showData)
 		if bShow != nil {
 			shows = append(shows, bShow)
 		}
@@ -111,7 +114,7 @@ func (db *TMDB) searchTV(title string) (*tvSearch, error) {
 
 	searchQuery := url.QueryEscape(title)
 
-	resp, err := http.Get(fmt.Sprintf(apiTVSearch, db.apiKey, searchQuery))
+	resp, err := db.httpClient.Get(fmt.Sprintf(apiTVSearch, db.apiKey, searchQuery))
 	if err != nil {
 		return nil, err
 	}
@@ -126,41 +129,52 @@ func (db *TMDB) searchTV(title string) (*tvSearch, error) {
 	return searchResults, nil
 }
 
-func (db *TMDB) buildTV(result tvSearchResult) *types.TV {
+//fetches all show specific data and returns as tvShow
+func (db *TMDB) fetchTVShow(result *tvSearchResult) *tvShow {
 	errScope := "TV Build error: %s"
 
-	tvResp, err := http.Get(fmt.Sprintf(apiTVByID, result.ID, db.apiKey))
+	tvResp, err := db.httpClient.Get(fmt.Sprintf(apiTVByID, result.ID, db.apiKey))
 	if err != nil {
 		log.Println(fmt.Sprintf(errScope, err))
 		return nil
 	}
 
-	var tvObj *tv
+	var tvObj *tvShow
 	err = dbs.ReadJsonToStruct(tvResp.Body, &tvObj)
 	if err != nil {
 		log.Println(fmt.Sprintf(errScope, err))
 		return nil
 	}
 
-	//Build TV Series
-	tvBuilder := builder.NewTVBuilder()
 	for _, s := range tvObj.Seasons {
-		seriesResp, err := http.Get(fmt.Sprintf(apiSeriesByNumber, result.ID, s.SeasonNumber, db.apiKey))
+		seriesResp, err := db.httpClient.Get(fmt.Sprintf(apiSeriesByNumber, result.ID, s.SeasonNumber, db.apiKey))
 		if err != nil {
 			log.Println(fmt.Sprintf(errScope, err))
 			return nil
 		}
 
-		var sObj *series
+		var sObj *tvShowSeriesData
 		err = dbs.ReadJsonToStruct(seriesResp.Body, &sObj)
 		if err != nil {
 			log.Println(fmt.Sprintf(errScope, err))
 			return nil
 		}
 
+		s.SeasonData = sObj
+	}
+
+	return tvObj
+}
+
+//builds tvShow into types.TV
+func buildTV(show *tvShow) *types.TV {
+	//Build TV Series
+	tvBuilder := builder.NewTVBuilder()
+
+	for _, sInfo := range show.Seasons {
 		//Build Series
 		seriesBuilder := builder.NewSeriesBuilder()
-		for _, e := range sObj.Episodes {
+		for _, e := range sInfo.SeasonData.Episodes {
 
 			//Build Episode
 			episodeBuilder := builder.NewEpisodeBuilder()
@@ -172,15 +186,15 @@ func (db *TMDB) buildTV(result tvSearchResult) *types.TV {
 		}
 
 		seriesBuilder.
-			WithTitle(sObj.Name).
-			WithNumber(sObj.SeasonNumber)
+			WithTitle(sInfo.Name).
+			WithNumber(sInfo.SeasonNumber)
 
 		tvBuilder.WithSeries(seriesBuilder)
 	}
 
 	tvBuilder.
-		WithTitle(tvObj.Name).
-		WithSeriesCount(tvObj.NumberOfSeasons)
+		WithTitle(show.Name).
+		WithSeriesCount(show.NumberOfSeasons)
 
 	return tvBuilder.Build()
 }

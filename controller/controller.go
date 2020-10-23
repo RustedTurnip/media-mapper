@@ -20,15 +20,17 @@ const (
 )
 
 type Worker struct {
-	database dbs.Database
-	filer    *filing.Filer
-	errs     []error
+	database   dbs.Database
+	filer      *filing.Filer
+	streamline bool
+	errs       []error
 }
 
-func New(database dbs.Database, filer *filing.Filer) *Worker {
+func New(database dbs.Database, filer *filing.Filer, streamline bool) *Worker {
 	return &Worker{
-		database: database,
-		filer:    filer,
+		database:   database,
+		filer:      filer,
+		streamline: streamline,
 	}
 }
 
@@ -47,7 +49,9 @@ func (w *Worker) Do() {
 	}
 
 	//print diff
-	w.filer.PrintBatchDiff()
+	if !w.streamline {
+		w.filer.PrintBatchDiff()
+	}
 
 	//display failed files
 	if len(w.errs) > 1 {
@@ -58,17 +62,21 @@ func (w *Worker) Do() {
 	}
 
 	//user input, proceed?
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Print("Proceed with changes? (y/n): ")
-	text, _ := reader.ReadString('\n')
+	if !w.streamline {
+		reader := bufio.NewReader(os.Stdin)
+		fmt.Print("Proceed with changes? (y/n): ")
+		text, _ := reader.ReadString('\n')
 
-	if strings.ToLower(strings.Trim(text, "\n")) != "y" {
-		fmt.Println("Cancelling...")
-		return
+		if strings.ToLower(strings.Trim(text, "\r\n")) != "y" {
+			fmt.Println("Cancelling...")
+			return
+		}
 	}
 
 	//continue with file rename
-	fmt.Println("Renaming files...")
+	if !w.streamline {
+		fmt.Println("Renaming files...")
+	}
 	w.filer.RenameBatch()
 }
 

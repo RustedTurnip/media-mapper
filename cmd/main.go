@@ -16,20 +16,23 @@ import (
 )
 
 const (
-	version = "v0.3.0"
+	version = "v0.4.0"
 )
 
 var (
 	AuthConfigs string //base 64 encoded, initialised at build time
 
-	versionFlag bool
-	database    string
-	auth        string
-	location    string
+	versionFlag    bool
+	streamlineFlag bool
+	database       string
+	auth           string
+	location       string
 )
 
 func init() {
 	flag.BoolVar(&versionFlag, "version", false, "media-mapper version")
+
+	flag.BoolVar(&streamlineFlag, "streamline", false, "run media-mapper headlessly. Warning: will make changes automatically")
 
 	flag.StringVar(&database, "database", "TMDB", "database to extract data from")
 	flag.StringVar(&auth, "auth", "", "location of auth")
@@ -67,19 +70,19 @@ func main() {
 		log.Fatalf("File handler failed to initialise: %s", err.Error())
 	}
 
-	worker := controller.New(api, filer)
+	worker := controller.New(api, filer, streamlineFlag)
 	worker.Do()
 }
 
 func getAuthReader() (io.Reader, error) {
 
+	if auth != "" {
+		return os.Open(auth)
+	}
+
 	//expects base64 to be encoded
 	if AuthConfigs != "" {
 		return base64.NewDecoder(base64.StdEncoding, strings.NewReader(AuthConfigs)), nil
-	}
-
-	if auth != "" {
-		return os.Open(auth)
 	}
 
 	return nil, fmt.Errorf("failed to find database credentials")
