@@ -67,7 +67,7 @@ func (w *Worker) Do() {
 		fmt.Print("Proceed with changes? (y/n): ")
 		text, _ := reader.ReadString('\n')
 
-		if strings.ToLower(strings.Trim(text, "\n")) != "y" {
+		if strings.ToLower(strings.Trim(text, "\r\n")) != "y" {
 			fmt.Println("Cancelling...")
 			return
 		}
