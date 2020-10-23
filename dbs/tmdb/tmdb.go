@@ -25,12 +25,14 @@ const (
 )
 
 type TMDB struct {
-	apiKey string
+	apiKey     string
+	httpClient *http.Client
 }
 
 func New(key string) dbs.Database {
 	return &TMDB{
-		apiKey: key,
+		apiKey:     key,
+		httpClient: &http.Client{},
 	}
 }
 
@@ -45,7 +47,7 @@ func (db *TMDB) SearchMovies(title string) []*types.Movie {
 
 	var movies []*types.Movie
 	for _, movie := range results.Results {
-		movies = append(movies, db.buildMovie(movie))
+		movies = append(movies, buildMovie(movie))
 	}
 
 	return movies
@@ -55,7 +57,7 @@ func (db *TMDB) searchMovies(title string) (*movieSearch, error) {
 
 	searchQuery := url.QueryEscape(title)
 
-	resp, err := http.Get(fmt.Sprintf(apiMovieSearch, db.apiKey, searchQuery))
+	resp, err := db.httpClient.Get(fmt.Sprintf(apiMovieSearch, db.apiKey, searchQuery))
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +72,7 @@ func (db *TMDB) searchMovies(title string) (*movieSearch, error) {
 	return searchResults, nil
 }
 
-func (db *TMDB) buildMovie(result movieSearchResult) *types.Movie {
+func buildMovie(result movieSearchResult) *types.Movie {
 
 	movieBuilder := builder.NewMovieBuilder()
 
@@ -112,7 +114,7 @@ func (db *TMDB) searchTV(title string) (*tvSearch, error) {
 
 	searchQuery := url.QueryEscape(title)
 
-	resp, err := http.Get(fmt.Sprintf(apiTVSearch, db.apiKey, searchQuery))
+	resp, err := db.httpClient.Get(fmt.Sprintf(apiTVSearch, db.apiKey, searchQuery))
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +133,7 @@ func (db *TMDB) searchTV(title string) (*tvSearch, error) {
 func (db *TMDB) fetchTVShow(result *tvSearchResult) *tvShow {
 	errScope := "TV Build error: %s"
 
-	tvResp, err := http.Get(fmt.Sprintf(apiTVByID, result.ID, db.apiKey))
+	tvResp, err := db.httpClient.Get(fmt.Sprintf(apiTVByID, result.ID, db.apiKey))
 	if err != nil {
 		log.Println(fmt.Sprintf(errScope, err))
 		return nil
@@ -145,7 +147,7 @@ func (db *TMDB) fetchTVShow(result *tvSearchResult) *tvShow {
 	}
 
 	for _, s := range tvObj.Seasons {
-		seriesResp, err := http.Get(fmt.Sprintf(apiSeriesByNumber, result.ID, s.SeasonNumber, db.apiKey))
+		seriesResp, err := db.httpClient.Get(fmt.Sprintf(apiSeriesByNumber, result.ID, s.SeasonNumber, db.apiKey))
 		if err != nil {
 			log.Println(fmt.Sprintf(errScope, err))
 			return nil
