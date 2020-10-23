@@ -3,6 +3,25 @@ All notable changes to this project will be documented in this file.
 
 *Note: Additional information on this changelog can be found in the [footnote](#a-namefootnotefootnotea).*
 
+## v0.4.0 - 2020-10-23
+### Added
+- Added the `-streamline` flag to allow the program to run headlessly
+without user input. This means that running in the `streamline` mode
+the program will automatically make file name changes.
+
+### Changed
+- Updated the program entry-point to prioritise config input from the `auth`
+flag, if provided via command line arguments, over the build-time config
+variable that will always be populated with released versions of
+mediamapper.
+
+### Fixed
+- Fixed user input mis-interpretation issue on Windows that was refusing to
+accept 'y' as a valid input, so would in turn always cancel operation
+mid-run.
+
+
+
 ## v0.3.0 - 2020-10-16
 ### Added
 - TVDB support has now been added. Due to API limitations, this currently
