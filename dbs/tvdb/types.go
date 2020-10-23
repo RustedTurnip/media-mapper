@@ -13,7 +13,7 @@ type token struct {
 
 //tv structs
 type tvSearch struct {
-	Results []tvSearchResult `json:"data"`
+	Results []*tvSearchResult `json:"data"`
 }
 type tvSearchResult struct {
 	Aliases    []string `json:"aliases"`
@@ -30,8 +30,8 @@ type tvSearchResult struct {
 }
 
 type tv struct {
-	Show   tvShow `json:"data"`
-	Errors Errors `json:"errors"`
+	Show   *tvShow `json:"data"`
+	Errors Errors  `json:"errors"`
 }
 type tvShow struct {
 	Added           string   `json:"added"`
@@ -51,17 +51,18 @@ type tvShow struct {
 	Runtime         string   `json:"runtime"`
 	SeriesID        string   `json:"seriesId"`
 	SeriesName      string   `json:"seriesName"`
-	SiteRating      int      `json:"siteRating"`
+	SiteRating      float64  `json:"siteRating"`
 	SiteRatingCount int      `json:"siteRatingCount"`
 	Slug            string   `json:"slug"`
 	Status          string   `json:"status"`
 	Zap2ItID        string   `json:"zap2itId"`
+	Series          *tvSeriesEpisodes
 }
 
 type tvSeriesEpisodes struct {
-	Episodes []episode `json:"data"`
-	Errors   Errors    `json:"errors"`
-	Links    Links     `json:"links"`
+	Episodes []*episode `json:"data"`
+	Errors   Errors     `json:"errors"`
+	Links    Links      `json:"links"`
 }
 
 type episode struct {

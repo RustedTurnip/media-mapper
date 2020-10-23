@@ -18,16 +18,19 @@ const (
 	apiBase               = "https://api.thetvdb.com"
 	apiLogin              = "/login"
 	apiSeriesSearch       = "/search/series"
+	apiSeriesByID         = "/series/%d"
 	apiEpisodesBySeriesID = "/series/%d/episodes"
 
 	httpHeaderAuth = "Authorization"
+
+	specialEpisodes = 0
 )
 
 type TVDB struct {
 	auth            auth //details used to get token
 	token           string
 	requestTemplate http.Request //used so only URL needs adding in future requests
-	httpCli         http.Client
+	httpClient      *http.Client
 }
 
 func New(apiKey, username, userkey string) (dbs.Database, error) {
@@ -42,7 +45,7 @@ func New(apiKey, username, userkey string) (dbs.Database, error) {
 			Method: http.MethodGet,
 			Header: http.Header{},
 		},
-		httpCli: http.Client{},
+		httpClient: &http.Client{},
 	}
 
 	body, err := json.Marshal(tvdb.auth)
@@ -51,7 +54,7 @@ func New(apiKey, username, userkey string) (dbs.Database, error) {
 	}
 
 	//get JWT (token)
-	resp, err := http.Post(fmt.Sprintf("%s%s", apiBase, apiLogin), "application/json", bytes.NewReader(body))
+	resp, err := tvdb.httpClient.Post(fmt.Sprintf("%s%s", apiBase, apiLogin), "application/json", bytes.NewReader(body))
 	if err != nil {
 		return nil, err
 	}
@@ -83,9 +86,17 @@ func (db *TVDB) SearchTV(title string) []*types.TV {
 		return []*types.TV{} //empty slice
 	}
 
+	//compile list of shows (built to *type.TV)
 	var shows []*types.TV
 	for _, show := range searchResults.Results {
-		if bShow := db.buildTV(show); bShow != nil {
+
+		data, err := db.fetchTV(show)
+		if err != nil {
+			log.Println(err.Error())
+			continue
+		}
+
+		if bShow := buildTV(data); bShow != nil {
 			shows = append(shows, bShow)
 		}
 	}
@@ -93,6 +104,7 @@ func (db *TVDB) SearchTV(title string) []*types.TV {
 	return shows
 }
 
+//queries search endpoint with specified title
 func (db *TVDB) searchTV(title string) (*tvSearch, error) {
 
 	req := &db.requestTemplate
@@ -108,9 +120,7 @@ func (db *TVDB) searchTV(title string) (*tvSearch, error) {
 	q.Set("name", title)
 	req.URL.RawQuery = q.Encode()
 
-	client := http.Client{}
-
-	resp, err := client.Do(req)
+	resp, err := db.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -124,15 +134,90 @@ func (db *TVDB) searchTV(title string) (*tvSearch, error) {
 	return searchResults, nil
 }
 
-func (db *TVDB) buildTV(result tvSearchResult) *types.TV {
+//queries series by ID to get series data
+func (db *TVDB) fetchTV(result *tvSearchResult) (*tvShow, error) {
 
-	//build episodes and group by season/seriesNum
-	episodes := db.getEpisodes(result.ID)
+	//fetch show data
+	req := &db.requestTemplate
+	url, _ := url.Parse(fmt.Sprintf("%s%s", apiBase, fmt.Sprintf(apiSeriesByID, result.ID)))
+	req.URL = url
+
+	resp, err := db.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("error requesting tv show - %s", err.Error())
+	}
+
+	var tv *tv = &tv{}
+	err = dbs.ReadJsonToStruct(resp.Body, &tv)
+
+	if err != nil {
+		return nil, fmt.Errorf("error reading tv response - %s", err.Error())
+	}
+
+	//fetch show episodes
+	episodes, err := db.getEpisodes(result.ID)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving episodes - %s", err.Error())
+	}
+
+	tv.Show.Series = &tvSeriesEpisodes{
+		Episodes: episodes,
+	}
+
+	return tv.Show, nil
+}
+
+//queries for episodes pertaining to series (by series ID)
+func (db *TVDB) getEpisodes(seriesID uint64) ([]*episode, error) {
+
+	var results []*episode
+
+	nextPage := 1
+	req := &db.requestTemplate
+
+	if link, err := url.Parse(fmt.Sprintf("%s%s", apiBase, fmt.Sprintf(apiEpisodesBySeriesID, seriesID))); err == nil {
+		req.URL = link
+	} else {
+		return nil, err
+	}
+
+	for {
+		if nextPage == 0 {
+			break
+		}
+
+		q := req.URL.Query()
+		q.Set("page", strconv.Itoa(nextPage))
+		req.URL.RawQuery = q.Encode()
+
+		resp, err := db.httpClient.Do(req)
+		if err != nil {
+			return nil, err //if error, discard all
+		}
+
+		var episodeResults *tvSeriesEpisodes = &tvSeriesEpisodes{}
+		err = dbs.ReadJsonToStruct(resp.Body, &episodeResults)
+		if err != nil {
+			return nil, err //if error, discard all
+		}
+
+		results = append(results, episodeResults.Episodes...)
+		nextPage = episodeResults.Links.Next
+	}
+
+	return results, nil
+}
+
+//builds types.TV object based on json structs built from api responses
+func buildTV(show *tvShow) *types.TV {
+
+	//group episodes by series number
 	groupedEpisodes := make(map[int][]*builder.EpisodeBuilder)
 
-	for _, episode := range episodes {
+	for _, episode := range show.Series.Episodes {
 		seriesNum := episode.AiredSeason
 
+		//build episode
 		eb := builder.NewEpisodeBuilder()
 		eb.
 			WithTitle(episode.EpisodeName).
@@ -145,19 +230,32 @@ func (db *TVDB) buildTV(result tvSearchResult) *types.TV {
 		groupedEpisodes[seriesNum] = append(groupedEpisodes[seriesNum], eb)
 	}
 
+	//Get show's number of series
+	seriesCount := len(groupedEpisodes)
+	if _, ok := groupedEpisodes[specialEpisodes]; ok {
+		seriesCount -= 1 //Ignore series with number 0 as reserved for special episodes
+	}
+
 	//start tv build
 	tvb := builder.NewTVBuilder()
 	tvb.
-		WithTitle(result.SeriesName).
-		WithSeriesCount(len(groupedEpisodes))
+		WithTitle(show.SeriesName).
+		WithSeriesCount(seriesCount)
 
 	//build series based on grouped episodes
 	for seriesNum, episodes := range groupedEpisodes {
 
+		//Build season/specific series name
+		seasonName := fmt.Sprintf("Season %d", seriesNum)
+		if seriesNum == 0 {
+			seasonName = "Specials"
+		}
+
+		//build series
 		sb := builder.NewSeriesBuilder()
 		sb.
 			WithNumber(seriesNum).
-			WithTitle(fmt.Sprintf("Season %d", seriesNum))
+			WithTitle(seasonName)
 
 		for _, e := range episodes {
 			sb.WithEpisode(e)
@@ -167,45 +265,4 @@ func (db *TVDB) buildTV(result tvSearchResult) *types.TV {
 	}
 
 	return tvb.Build()
-}
-
-func (db *TVDB) getEpisodes(seriesID uint64) []episode {
-
-	var results []episode
-
-	nextPage := 1
-	req := &db.requestTemplate
-
-	if link, err := url.Parse(fmt.Sprintf("%s%s", apiBase, fmt.Sprintf(apiEpisodesBySeriesID, seriesID))); err == nil {
-		req.URL = link
-	} else {
-		return nil
-	}
-
-	for {
-		if nextPage == 0 {
-			break
-		}
-
-		q := req.URL.Query()
-		q.Set("page", strconv.Itoa(nextPage))
-		req.URL.RawQuery = q.Encode()
-
-		resp, err := db.httpCli.Do(req)
-		if err != nil {
-			return nil //if error, discard all
-		}
-
-		var episodeResults *tvSeriesEpisodes = &tvSeriesEpisodes{}
-		err = dbs.ReadJsonToStruct(resp.Body, &episodeResults)
-		if err != nil {
-			fmt.Println(err.Error())
-			return nil //if error, discard all
-		}
-
-		results = append(results, episodeResults.Episodes...)
-		nextPage = episodeResults.Links.Next
-	}
-
-	return results
 }
