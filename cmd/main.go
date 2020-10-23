@@ -76,13 +76,13 @@ func main() {
 
 func getAuthReader() (io.Reader, error) {
 
+	if auth != "" {
+		return os.Open(auth)
+	}
+
 	//expects base64 to be encoded
 	if AuthConfigs != "" {
 		return base64.NewDecoder(base64.StdEncoding, strings.NewReader(AuthConfigs)), nil
-	}
-
-	if auth != "" {
-		return os.Open(auth)
 	}
 
 	return nil, fmt.Errorf("failed to find database credentials")
