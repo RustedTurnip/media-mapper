@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	version = "v0.4.0"
+	version = "v0.4.0-dev"
 )
 
 var (
@@ -51,7 +51,7 @@ func main() {
 	//create DB instance
 	db, ok := dbs.API_value[database]
 	if !ok {
-		log.Fatalf("Unssupported network specified: %s", database)
+		log.Fatalf("Unsupported network specified: %s", database)
 	}
 
 	authReader, err := getAuthReader()
