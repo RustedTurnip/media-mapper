@@ -5,9 +5,10 @@ import (
 	"io"
 	"log"
 
-	"github.com/rustedturnip/media-mapper/dbs"
-	"github.com/rustedturnip/media-mapper/dbs/tmdb"
-	"github.com/rustedturnip/media-mapper/dbs/tvdb"
+	dbPackage "github.com/rustedturnip/media-mapper/database"
+	"github.com/rustedturnip/media-mapper/database/cache"
+	"github.com/rustedturnip/media-mapper/database/databases/tmdb"
+	"github.com/rustedturnip/media-mapper/database/databases/tvdb"
 )
 
 type database struct {
@@ -19,7 +20,7 @@ type config struct {
 	Databases []*database `json:"databases"`
 }
 
-func GetInstance(authReader io.Reader, api dbs.API) (dbs.Database, error) {
+func GetInstance(authReader io.Reader, api dbPackage.API) (dbPackage.Database, error) {
 
 	configs, err := getConfigs(authReader)
 	if err != nil {
@@ -27,20 +28,20 @@ func GetInstance(authReader io.Reader, api dbs.API) (dbs.Database, error) {
 	}
 
 	switch api {
-	case dbs.TMDB:
-		if db, ok := configs[dbs.API_name[int(api)]]; ok {
-			return tmdb.New(db.Auth["apikey"]), nil
+	case dbPackage.TMDB:
+		if db, ok := configs[dbPackage.API_name[int(api)]]; ok {
+			return cache.New(tmdb.New(db.Auth["apikey"])), nil
 		}
 		return nil, err
 
-	case dbs.TVDB:
-		if db, ok := configs[dbs.API_name[int(api)]]; ok {
+	case dbPackage.TVDB:
+		if db, ok := configs[dbPackage.API_name[int(api)]]; ok {
 			log.Println("Warning: TVDB only supports TV lookup currently")
 
 			if impl, err := tvdb.New(db.Auth["apikey"], db.Auth["username"], db.Auth["userkey"]); err != nil {
 				return nil, err
 			} else {
-				return impl, nil
+				return cache.New(impl), nil
 			}
 		}
 		return nil, err

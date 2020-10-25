@@ -11,7 +11,7 @@ import (
 
 	cfg "github.com/rustedturnip/media-mapper/config"
 	"github.com/rustedturnip/media-mapper/controller"
-	"github.com/rustedturnip/media-mapper/dbs"
+	dbPackage "github.com/rustedturnip/media-mapper/database"
 	"github.com/rustedturnip/media-mapper/filing"
 )
 
@@ -48,8 +48,8 @@ func main() {
 		return
 	}
 
-	//create DB instance
-	db, ok := dbs.API_value[database]
+	//check specified db
+	db, ok := dbPackage.API_value[database]
 	if !ok {
 		log.Fatalf("Unsupported network specified: %s", database)
 	}

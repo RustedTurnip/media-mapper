@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/rustedturnip/media-mapper/dbs"
+	"github.com/rustedturnip/media-mapper/database"
 	"github.com/rustedturnip/media-mapper/types"
 	"github.com/rustedturnip/media-mapper/types/builder"
 )
@@ -33,7 +33,7 @@ type TVDB struct {
 	httpClient      *http.Client
 }
 
-func New(apiKey, username, userkey string) (dbs.Database, error) {
+func New(apiKey, username, userkey string) (database.Database, error) {
 
 	tvdb := &TVDB{
 		auth: auth{
@@ -60,7 +60,7 @@ func New(apiKey, username, userkey string) (dbs.Database, error) {
 	}
 
 	var token *token
-	err = dbs.ReadJsonToStruct(resp.Body, &token)
+	err = database.ReadJsonToStruct(resp.Body, &token)
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +126,7 @@ func (db *TVDB) searchTV(title string) (*tvSearch, error) {
 	}
 
 	var searchResults *tvSearch
-	err = dbs.ReadJsonToStruct(resp.Body, &searchResults)
+	err = database.ReadJsonToStruct(resp.Body, &searchResults)
 	if err != nil {
 		return nil, err
 	}
@@ -148,7 +148,7 @@ func (db *TVDB) fetchTV(result *tvSearchResult) (*tvShow, error) {
 	}
 
 	var tv *tv = &tv{}
-	err = dbs.ReadJsonToStruct(resp.Body, &tv)
+	err = database.ReadJsonToStruct(resp.Body, &tv)
 
 	if err != nil {
 		return nil, fmt.Errorf("error reading tv response - %s", err.Error())
@@ -196,7 +196,7 @@ func (db *TVDB) getEpisodes(seriesID uint64) ([]*episode, error) {
 		}
 
 		var episodeResults *tvSeriesEpisodes = &tvSeriesEpisodes{}
-		err = dbs.ReadJsonToStruct(resp.Body, &episodeResults)
+		err = database.ReadJsonToStruct(resp.Body, &episodeResults)
 		if err != nil {
 			return nil, err //if error, discard all
 		}

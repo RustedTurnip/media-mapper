@@ -8,7 +8,7 @@ import (
 
 	colour "github.com/fatih/color"
 	ptn "github.com/middelink/go-parse-torrent-name"
-	"github.com/rustedturnip/media-mapper/dbs"
+	"github.com/rustedturnip/media-mapper/database"
 	"github.com/rustedturnip/media-mapper/filing"
 )
 
@@ -20,13 +20,13 @@ const (
 )
 
 type Worker struct {
-	database   dbs.Database
+	database   database.Database
 	filer      *filing.Filer
 	streamline bool
 	errs       []error
 }
 
-func New(database dbs.Database, filer *filing.Filer, streamline bool) *Worker {
+func New(database database.Database, filer *filing.Filer, streamline bool) *Worker {
 	return &Worker{
 		database:   database,
 		filer:      filer,

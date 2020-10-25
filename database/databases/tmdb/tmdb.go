@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/rustedturnip/media-mapper/dbs"
+	"github.com/rustedturnip/media-mapper/database"
 	"github.com/rustedturnip/media-mapper/types"
 	"github.com/rustedturnip/media-mapper/types/builder"
 )
@@ -29,7 +29,7 @@ type TMDB struct {
 	httpClient *http.Client
 }
 
-func New(key string) dbs.Database {
+func New(key string) database.Database {
 	return &TMDB{
 		apiKey:     key,
 		httpClient: &http.Client{},
@@ -63,7 +63,7 @@ func (db *TMDB) searchMovies(title string) (*movieSearch, error) {
 	}
 
 	var searchResults *movieSearch
-	err = dbs.ReadJsonToStruct(resp.Body, &searchResults)
+	err = database.ReadJsonToStruct(resp.Body, &searchResults)
 
 	if err != nil {
 		return nil, err
@@ -120,7 +120,7 @@ func (db *TMDB) searchTV(title string) (*tvSearch, error) {
 	}
 
 	var searchResults *tvSearch
-	err = dbs.ReadJsonToStruct(resp.Body, &searchResults)
+	err = database.ReadJsonToStruct(resp.Body, &searchResults)
 
 	if err != nil {
 		return nil, err
@@ -140,7 +140,7 @@ func (db *TMDB) fetchTVShow(result *tvSearchResult) *tvShow {
 	}
 
 	var tvObj *tvShow
-	err = dbs.ReadJsonToStruct(tvResp.Body, &tvObj)
+	err = database.ReadJsonToStruct(tvResp.Body, &tvObj)
 	if err != nil {
 		log.Println(fmt.Sprintf(errScope, err))
 		return nil
@@ -154,7 +154,7 @@ func (db *TMDB) fetchTVShow(result *tvSearchResult) *tvShow {
 		}
 
 		var sObj *tvShowSeriesData
-		err = dbs.ReadJsonToStruct(seriesResp.Body, &sObj)
+		err = database.ReadJsonToStruct(seriesResp.Body, &sObj)
 		if err != nil {
 			log.Println(fmt.Sprintf(errScope, err))
 			return nil

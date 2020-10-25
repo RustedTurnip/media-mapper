@@ -1,4 +1,4 @@
-package dbs
+package database
 
 import (
 	"encoding/json"
@@ -6,11 +6,6 @@ import (
 	"io"
 	"io/ioutil"
 )
-
-type Database interface {
-	SearchMovies(string) []*types.Movie
-	SearchTV(string) []*types.TV
-}
 
 type API int
 
@@ -27,6 +22,11 @@ var API_value = map[string]API{
 var API_name = map[int]string{
 	0: "TMDB",
 	1: "TVDB",
+}
+
+type Database interface {
+	SearchMovies(string) []*types.Movie
+	SearchTV(string) []*types.TV
 }
 
 func ReadJsonToStruct(reader io.ReadCloser, obj interface{}) error {

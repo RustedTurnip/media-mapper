@@ -2,7 +2,7 @@ package tvdb
 
 import (
 	"bytes"
-	"github.com/rustedturnip/media-mapper/dbs"
+	"github.com/rustedturnip/media-mapper/database"
 	"io/ioutil"
 	"net/http"
 	"testing"
@@ -643,7 +643,7 @@ func TestTVDB_SearchTV(t *testing.T) {
 	for _, test := range tests {
 		//initialise db with test specific mock client with test's responses
 		db := TVDB{
-			httpClient: dbs.NewHttpClient(test.responses),
+			httpClient: database.NewHttpClient(test.responses),
 		}
 
 		//test

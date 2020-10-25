@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/kylelemons/godebug/pretty"
-	"github.com/rustedturnip/media-mapper/dbs"
+	"github.com/rustedturnip/media-mapper/database"
 	"github.com/rustedturnip/media-mapper/types"
 )
 
@@ -163,7 +163,7 @@ func TestTMDB_SearchMovies(t *testing.T) {
 		//create db instance with mocked http client
 		db := TMDB{
 			apiKey:     testAPIToken,
-			httpClient: dbs.NewHttpClient(test.responses),
+			httpClient: database.NewHttpClient(test.responses),
 		}
 
 		results := db.SearchMovies(test.titleInput)
@@ -538,7 +538,7 @@ func TestTMDB_SearchTV(t *testing.T) {
 		//test specific db instance
 		db := &TMDB{
 			apiKey:     testAPIToken,
-			httpClient: dbs.NewHttpClient(test.responses), //mocked http client with test's responses to queries
+			httpClient: database.NewHttpClient(test.responses), //mocked http client with test's responses to queries
 		}
 
 		//run test
