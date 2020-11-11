@@ -1,6 +1,10 @@
 package filing
 
-import "fmt"
+import (
+	"fmt"
+
+	colour "github.com/fatih/color"
+)
 
 var (
 	//supported supportedVideo file types
@@ -36,4 +40,9 @@ func (f *File) GetName() string {
 
 func (f *File) GetNewName() string {
 	return fmt.Sprintf("%s%s", f.NewName, f.Ext)
+}
+
+func (f *File) PrintDiff() {
+	colour.Red("- %s", f.GetName())
+	colour.Green("+ %s", f.GetNewName())
 }

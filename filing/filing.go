@@ -8,13 +8,46 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
-
-	colour "github.com/fatih/color"
 )
 
+type FileStruct map[string][]*File
+
+//forgets a dir (preventing any changes happening to it)
+func (fs FileStruct) ForgetDir(dir string) {
+
+	//forget dir and all subdirectories
+	for d, _ := range fs {
+		if strings.HasPrefix(d, dir) {
+			delete(fs, dir)
+		}
+	}
+}
+
+//forgets a file (to prevent it being changed)
+func (fs FileStruct) ForgetFile(dir string, fileName string) {
+	if _, ok := fs[dir]; !ok {
+		return
+	}
+
+	for i, file := range fs[dir] {
+		if file.Name == fileName {
+			//if last in array, use all elements up until point
+			if i == len(fs[dir])-1 {
+				fs[dir] = fs[dir][:i]
+				continue
+			}
+			fs[dir] = append(fs[dir][:i], fs[dir][i+1:]...)
+		}
+	}
+
+	if len(fs[dir]) == 0 {
+		fs.ForgetDir(dir)
+	}
+}
+
 type Filer struct {
-	root  string
-	files map[string][]*File //key: file path (string), value: name, extension (File)
+	Root  string
+	Files FileStruct //key: file path (string), value: name, extension (File)
 }
 
 func New(root string) (*Filer, error) {
@@ -29,7 +62,7 @@ func New(root string) (*Filer, error) {
 	}
 
 	filer := &Filer{
-		root: root,
+		Root: root,
 	}
 
 	if err := filer.findFiles(); err != nil {
@@ -39,8 +72,8 @@ func New(root string) (*Filer, error) {
 	return filer, nil
 }
 
-func (f *Filer) GetFiles() map[string][]*File {
-	return f.files
+func (f *Filer) GetFiles() FileStruct {
+	return f.Files
 }
 
 //returns map, with folder location as key, relevant contained files as values (array)
@@ -54,7 +87,7 @@ func (f *Filer) findFiles() error {
 	mFiles := f.extractMediaFiles(files)
 
 	if len(mFiles) == 0 {
-		return fmt.Errorf(fmt.Sprintf("no supported media files located under specified root: %s", f.root))
+		return fmt.Errorf(fmt.Sprintf("no supported media files located under specified root: %s", f.Root))
 	}
 
 	fileMap := make(map[string][]*File)
@@ -70,7 +103,7 @@ func (f *Filer) findFiles() error {
 		})
 	}
 
-	f.files = fileMap
+	f.Files = fileMap
 	return nil
 }
 
@@ -79,7 +112,7 @@ func (f *Filer) listAllFiles() ([]string, error) {
 
 	var files []string
 
-	if err := filepath.Walk(f.root, func(location string, info os.FileInfo, err error) error {
+	if err := filepath.Walk(f.Root, func(location string, info os.FileInfo, err error) error {
 
 		if err != nil {
 			return err
@@ -114,7 +147,7 @@ func (f *Filer) extractMediaFiles(files []string) []string {
 
 func (f *Filer) RenameBatch() {
 
-	for loc, dir := range f.files {
+	for loc, dir := range f.Files {
 		for _, file := range dir {
 
 			if file.NewName == "" {
@@ -136,7 +169,7 @@ func (f *Filer) RenameBatch() {
 func (f *Filer) PrintBatchDiff() {
 
 	//print location of diffs
-	for loc, dir := range f.files {
+	for loc, dir := range f.Files {
 		var once sync.Once //only want to print loc once per directory
 
 		//print diff
@@ -150,8 +183,7 @@ func (f *Filer) PrintBatchDiff() {
 				fmt.Println(fmt.Sprintf("\ndiff %s:", loc))
 			})
 
-			colour.Red("- %s", file.GetName())
-			colour.Green("+ %s", file.GetNewName())
+			file.PrintDiff()
 			fmt.Println()
 		}
 	}

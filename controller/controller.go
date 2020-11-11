@@ -1,13 +1,10 @@
 package controller
 
 import (
-	"bufio"
 	"fmt"
-	"os"
-	"strings"
-
 	colour "github.com/fatih/color"
 	ptn "github.com/middelink/go-parse-torrent-name"
+	"github.com/rustedturnip/media-mapper/cli"
 	"github.com/rustedturnip/media-mapper/database"
 	"github.com/rustedturnip/media-mapper/filing"
 )
@@ -63,21 +60,11 @@ func (w *Worker) Do() {
 
 	//user input, proceed?
 	if !w.streamline {
-		reader := bufio.NewReader(os.Stdin)
-		fmt.Print("Proceed with changes? (y/n): ")
-		text, _ := reader.ReadString('\n')
-
-		if strings.ToLower(strings.Trim(text, "\r\n")) != "y" {
-			fmt.Println("Cancelling...")
-			return
-		}
+		ui := cli.New(w.filer)
+		ui.Run() //run interface for user to take control
+	} else { //else silently rename all
+		w.filer.RenameBatch()
 	}
-
-	//continue with file rename
-	if !w.streamline {
-		fmt.Println("Renaming files...")
-	}
-	w.filer.RenameBatch()
 }
 
 func (w *Worker) getName(info *ptn.TorrentInfo) string {
