@@ -7,6 +7,7 @@ import (
 	"github.com/rustedturnip/media-mapper/cli"
 	"github.com/rustedturnip/media-mapper/database"
 	"github.com/rustedturnip/media-mapper/filing"
+	"github.com/schollz/progressbar/v3"
 )
 
 const (
@@ -33,6 +34,19 @@ func New(database database.Database, filer *filing.Filer, streamline bool) *Work
 
 func (w *Worker) Do() {
 
+	//progress bar config
+	bar := progressbar.NewOptions(w.filer.GetFileCount(),
+		progressbar.OptionEnableColorCodes(true),
+		progressbar.OptionSetWidth(50),
+		progressbar.OptionSetDescription("Fetching data..."),
+		progressbar.OptionSetTheme(progressbar.Theme{
+			Saucer:        "[blue]=[reset]",
+			SaucerHead:    "[blue]>[reset]",
+			SaucerPadding: " ",
+			BarStart:      "[",
+			BarEnd:        "]",
+		}))
+
 	for _, files := range w.filer.GetFiles() {
 		for _, file := range files {
 			info, err := ptn.Parse(file.Name)
@@ -42,11 +56,13 @@ func (w *Worker) Do() {
 			}
 
 			file.NewName = w.getName(info)
+			bar.Add(1) //progress bar
 		}
 	}
 
 	//print diff
 	if !w.streamline {
+		fmt.Println()
 		w.filer.PrintBatchDiff()
 	}
 

@@ -76,6 +76,15 @@ func (f *Filer) GetFiles() FileStruct {
 	return f.Files
 }
 
+func (f *Filer) GetFileCount() int {
+
+	count := 0
+	for _, files := range f.Files {
+		count += len(files)
+	}
+	return count
+}
+
 //returns map, with folder location as key, relevant contained files as values (array)
 func (f *Filer) findFiles() error {
 
