@@ -2,7 +2,6 @@ package tmdb
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"time"
@@ -41,7 +40,6 @@ func (db *TMDB) SearchMovies(title string) []*types.Movie {
 	results, err := db.searchMovies(title)
 
 	if err != nil {
-		log.Println(fmt.Sprintf("Failed getting Movie results with error: %s", err.Error()))
 		return []*types.Movie{} //empty slice
 	}
 
@@ -76,10 +74,7 @@ func buildMovie(result movieSearchResult) *types.Movie {
 
 	movieBuilder := builder.NewMovieBuilder()
 
-	date, err := time.Parse(apiDateFormat, result.ReleaseDate)
-	if err != nil {
-		log.Println(fmt.Sprintf("Movie build error: %s", err.Error()))
-	}
+	date, _ := time.Parse(apiDateFormat, result.ReleaseDate)
 
 	movie := movieBuilder.
 		WithTitle(result.Title).
@@ -90,10 +85,9 @@ func buildMovie(result movieSearchResult) *types.Movie {
 }
 
 func (db *TMDB) SearchTV(title string) []*types.TV {
-	results, err := db.searchTV(title)
 
+	results, err := db.searchTV(title)
 	if err != nil {
-		log.Println(fmt.Sprintf("Failed getting TV results with error: %s", err.Error()))
 		return []*types.TV{} //empty slice
 	}
 
@@ -131,32 +125,27 @@ func (db *TMDB) searchTV(title string) (*tvSearch, error) {
 
 //fetches all show specific data and returns as tvShow
 func (db *TMDB) fetchTVShow(result *tvSearchResult) *tvShow {
-	errScope := "TV Build error: %s"
 
 	tvResp, err := db.httpClient.Get(fmt.Sprintf(apiTVByID, result.ID, db.apiKey))
 	if err != nil {
-		log.Println(fmt.Sprintf(errScope, err))
 		return nil
 	}
 
 	var tvObj *tvShow
 	err = database.ReadJsonToStruct(tvResp.Body, &tvObj)
 	if err != nil {
-		log.Println(fmt.Sprintf(errScope, err))
 		return nil
 	}
 
 	for _, s := range tvObj.Seasons {
 		seriesResp, err := db.httpClient.Get(fmt.Sprintf(apiSeriesByNumber, result.ID, s.SeasonNumber, db.apiKey))
 		if err != nil {
-			log.Println(fmt.Sprintf(errScope, err))
 			return nil
 		}
 
 		var sObj *tvShowSeriesData
 		err = database.ReadJsonToStruct(seriesResp.Body, &sObj)
 		if err != nil {
-			log.Println(fmt.Sprintf(errScope, err))
 			return nil
 		}
 

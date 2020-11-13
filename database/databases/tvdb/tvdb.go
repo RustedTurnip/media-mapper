@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -82,7 +81,6 @@ func (db *TVDB) SearchTV(title string) []*types.TV {
 
 	searchResults, err := db.searchTV(title)
 	if err != nil {
-		log.Println(fmt.Sprintf("Failed getting TV results with error: %s", err.Error()))
 		return []*types.TV{} //empty slice
 	}
 
@@ -92,7 +90,6 @@ func (db *TVDB) SearchTV(title string) []*types.TV {
 
 		data, err := db.fetchTV(show)
 		if err != nil {
-			log.Println(err.Error())
 			continue
 		}
 
