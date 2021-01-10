@@ -25,6 +25,7 @@ type clInterface struct {
 //runs command line interface for user (outer/highest level interface)
 func (cli *clInterface) Run() {
 	for cli.runOuter() {
+		cli.filer.PrintBatchDiff() //print diff at the end of each complete run
 	} //run while runOuter == true
 }
 
